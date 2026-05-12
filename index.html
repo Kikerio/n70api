@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NASA Archive 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #000;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 30px 60px 60px 60px;
+            -webkit-font-smoothing: antialiased;
+            /* Rimuoviamo cursor: none globale per permettere l'interazione standard */
+        }
+
+        /* --- LOGO --- */
+        .logo-container {
+            position: relative;
+            width: fit-content;
+            line-height: 0;
+            margin-bottom: 25px; 
+        }
+        .logo-container img {
+            max-width: 120px; 
+            height: auto;
+            z-index: 1; 
+        }
+        .star-cross {
+            position: absolute;
+            pointer-events: none;
+            z-index: 99;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .star-cross::before, .star-cross::after {
+            content: '';
+            position: absolute;
+            background: white;
+            border-radius: 1px;
+        }
+        .star-cross::before { width: 100%; height: 1.5px; }
+        .star-cross::after { width: 1.5px; height: 100%; }
+        .animate-star { animation: blink 1.5s ease-in-out forwards; }
+        @keyframes blink {
+            0% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(0); opacity: 0; }
+        }
+
+        .intro-text {
+            max-width: 800px;
+            font-size: 18px;
+            line-height: 1.4;
+            color: #fff;
+            margin-bottom: 60px;
+            letter-spacing: -0.01em;
+        }
+
+        /* --- CONTROLLI --- */
+        .controls {
+            margin-bottom: 40px;
+            border-top: 1px solid #222;
+            padding-top: 25px;
+        }
+        .sort-button {
+            font-size: 11px;
+            color: #fff;
+            border: 1px solid #ffffff;
+            padding: 8px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .sort-button:hover { background: #fff; color: #000; }
+
+        .filter-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .chip {
+            font-size: 10px;
+            color: #ffffff;
+            padding: 4px 14px;
+            border: 1px solid #222;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: border-color 0.2s ease, color 0.2s ease;
+        }
+        .chip:hover { border-color: #fff; color: #fff; }
+        .chip.active { background: #fff; color: #000; border-color: #fff; }
+
+        /* --- LISTA E HIGHLIGHTER --- */
+        #archive-list {
+            position: relative; /* Necessario per il posizionamento dell'highlighter */
+        }
+
+        /* L'elemento che si muove */
+        #list-highlighter {
+            position: absolute;
+            background-color: #fff;
+            left: -20px;
+            right: -20px;
+            height: 0;
+            top: 0;
+            pointer-events: none;
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), height 0.2s ease;
+            z-index: 0;
+        }
+
+        .project-row {
+            position: relative;
+            display: grid;
+            grid-template-columns: 1fr 200px 150px;
+            padding: 12px 20px;
+            border-bottom: 1px solid #111;
+            align-items: baseline;
+            cursor: pointer;
+            margin: 0 -20px;
+            z-index: 1; /* Sopra l'highlighter */
+            transition: color 0.3s ease;
+        }
+
+        /* Testo nero quando l'highlighter è sotto */
+        .project-row.is-active {
+            color: #000;
+        }
+
+        .project-title {
+            font-size: 2vw; 
+            font-weight: 500;
+            letter-spacing: -0.02em;
+            line-height: 1;
+        }
+
+        .project-meta {
+            font-size: 10px;
+            color: #fffefe;
+            transition: color 0.3s ease;
+        }
+
+        .project-row.is-active .project-meta {
+            color: #000;
+            opacity: 0.6;
+        }
+
+        /* --- PREVIEW --- */
+        #hover-preview {
+            position: fixed;
+            pointer-events: none;
+            width: 300px;
+            height: 200px;
+            display: none;
+            z-index: 1000;
+            background-size: cover;
+            background-position: center;
+            transform: translate(20px, -50%); /* Spostato a lato del cursore */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="logo-container" id="logoContainer">
+        <img src="logonasa.jpg" alt="Logo NASA">
+    </div>
+
+    <div class="intro-text">
+        <strong>The Scale of Change // NASA Archive 2026</strong><br>
+        Un'esplorazione visiva e interattiva dei progetti NASA. Questa piattaforma funge da archivio per la divulgazione scientifica.
+    </div>
+
+    <div class="controls">
+        <div class="sort-section">
+            <button class="sort-button" onclick="toggleSort()">
+                Order by: <span id="sort-label">Name</span>
+            </button>
+        </div>
+        <div class="filter-section" id="filter-container">
+            <div class="chip active" onclick="filterBy('all', this)">All Projects</div>
+        </div>
+    </div>
+
+    <!-- Contenitore lista con highlighter -->
+    <main id="archive-list">
+        <div id="list-highlighter"></div>
+        <div id="items-container"></div>
+    </main>
+
+    <div id="hover-preview"></div>
+
+    <script>
+        const data = [
+            { "titolo": "Test gravity", "autore": "Riccardo Vosti", "tags": ["kids", "gravity", "game"], "immagine": "thumbnail.jpg", "url": "https://riccardovosti.github.io/TESTGRAVITY/" },
+            { "titolo": "Perseverance Rover", "autore": "Nahele Belli", "tags": ["Rover", "3D", "Mars"], "immagine": "Perseverance_rover.jpg", "url": "https://naheleee.github.io/NaheleBelli_IXD_2026/Progetto1_PerseveranceRover/index.html" },
+            { "titolo": "NASA SAY", "autore": "Claudio Ceppi", "tags": ["sounds"], "immagine": "nasasay.jpg", "url": "https://claudio-ceppi.github.io/CV429.01-Interaction-Design/NASA.SAY/files/" },
+            { "titolo": "Other Worlds", "autore": "Djordja Krsteva", "tags": ["exoplanets", "NASA70"], "immagine": "otherworlds.jpg", "url": "https://djordjaa.github.io/Other_Worlds/" },
+            { "titolo": "MoonPrint", "autore": "Sofia Ribeiro Marques", "tags": ["moon", "newspaper"], "immagine": "moonprint.jpg", "url": "https://sofiaribeiromarques.github.io/NASA/progetto/index.html" },
+            { "titolo": "Eyes on earth", "autore": "Carla De Gennaro", "tags": ["climate change", "satellites"], "immagine": "carla.jpg", "url": "https://carladegennaro.github.io/interaction_design/progetto_1.2/" },
+            { "titolo": "Lunar Archive", "autore": "Daniele Falcone", "tags": ["moon", "apollo"], "immagine": "LAE.jpeg", "url": "https://dadiccs.github.io/nasa/" },
+            { "titolo": "Nebula Vision", "autore": "Alissa Bionda", "tags": ["Nebula", "educational"], "immagine": "nebulavision.jpg", "url": "https://ali-0032.github.io/CV429/05_prototipo_3/" },
+            { "titolo": "SolarScale", "autore": "Luca Mazzola", "tags": ["solar system", "planets"], "immagine": "solarscale.jpg", "url": "https://lucamazzolaa.github.io/NASA70/" },
+            { "titolo": "Hubble Space", "autore": "Laura Pantani", "tags": ["satelliti", "immagini"], "immagine": "hubble.png", "url": "https://laura-pantani.github.io/NASA70/p1/" },
+            { "titolo": "Spacesuit Evo", "autore": "Davide Barattini", "tags": ["Spacesuit"], "immagine": "Perseverance_rover.jpg", "url": "https://davidebarattini.github.io/media/spacesuit-evolution/index.html" }
+        ];
+
+        // LOGIC STARS (Invariata)
+        const containerLogo = document.getElementById('logoContainer');
+        let isHoveringLogo = false;
+        let starInterval;
+
+        function createRandomStar() {
+            const star = document.createElement('div');
+            star.classList.add('star-cross', 'animate-star');
+            const size = Math.random() * 15 + 8;
+            star.style.width = size + 'px'; star.style.height = size + 'px';
+            const top = Math.random() * 100; const left = Math.random() * 100;
+            star.style.top = top + "%"; star.style.left = left + "%";
+            containerLogo.appendChild(star);
+            setTimeout(() => star.remove(), 1500);
+        }
+
+        containerLogo.addEventListener('mouseenter', () => {
+            isHoveringLogo = true;
+            starInterval = setInterval(() => { if(isHoveringLogo) createRandomStar(); }, 150);
+        });
+        containerLogo.addEventListener('mouseleave', () => {
+            isHoveringLogo = false;
+            clearInterval(starInterval);
+        });
+
+        // LOGIC LISTA E HIGHLIGHTER
+        let currentFilter = 'all';
+        let currentSort = 'titolo';
+        const highlighter = document.getElementById('list-highlighter');
+        const preview = document.getElementById('hover-preview');
+
+        function initFilters() {
+            const tags = new Set();
+            data.forEach(item => item.tags.forEach(t => tags.add(t)));
+            const fc = document.getElementById('filter-container');
+            tags.forEach(tag => {
+                const el = document.createElement('div');
+                el.className = 'chip'; el.innerText = tag;
+                el.onclick = () => filterBy(tag, el);
+                fc.appendChild(el);
+            });
+        }
+
+        function toggleSort() {
+            currentSort = (currentSort === 'titolo') ? 'autore' : 'titolo';
+            document.getElementById('sort-label').innerText = (currentSort === 'titolo') ? 'Name' : 'Author';
+            renderItems();
+        }
+
+        function filterBy(tag, el) {
+            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+            currentFilter = tag;
+            renderItems();
+        }
+
+        function renderItems() {
+            const container = document.getElementById('items-container');
+            container.innerHTML = '';
+            let filtered = data.filter(i => currentFilter === 'all' || i.tags.includes(currentFilter));
+            filtered.sort((a,b) => a[currentSort].localeCompare(b[currentSort]));
+
+            filtered.forEach(item => {
+                const row = document.createElement('div');
+                row.className = 'project-row';
+                row.innerHTML = `
+                    <div class="project-title">${item.titolo}</div>
+                    <div class="project-meta text-center">${item.autore}</div>
+                    <div class="project-meta text-right opacity-30">${item.tags[0]}</div>
+                `;
+
+                // Click per andare al link
+                row.onclick = () => window.open(item.url, '_blank');
+
+                row.onmouseenter = (e) => { 
+                    // Gestione Preview Immagine
+                    preview.style.display = 'block'; 
+                    preview.style.backgroundImage = `url(${item.immagine})`; 
+
+                    // Gestione Highlighter
+                    const rowRect = row.getBoundingClientRect();
+                    const parentRect = document.getElementById('archive-list').getBoundingClientRect();
+                    
+                    highlighter.style.height = `${rowRect.height}px`;
+                    highlighter.style.transform = `translateY(${rowRect.top - parentRect.top}px)`;
+                    highlighter.style.opacity = '1';
+                    
+                    row.classList.add('is-active');
+                };
+
+                row.onmouseleave = () => {
+                    preview.style.display = 'none';
+                    row.classList.remove('is-active');
+                };
+
+                row.onmousemove = (e) => { 
+                    preview.style.left = e.clientX + 'px'; 
+                    preview.style.top = e.clientY + 'px'; 
+                };
+
+                container.appendChild(row);
+            });
+        }
+
+        // Nascondi highlighter quando esci dalla lista
+        document.getElementById('archive-list').onmouseleave = () => {
+            highlighter.style.opacity = '0';
+        };
+
+        window.onload = () => {
+            initFilters();
+            renderItems();
+        };
+    </script>
+</body>
+</html>
