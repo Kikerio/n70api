@@ -24,10 +24,8 @@ TAG MACRO:
 + TAG MICRO (personali)
 
 ### Immagini:
+Larghezza massima 1920px
 - "nomeprogetto_1.jpg"
 - "nomeprogetto_2.jpg"
 <br>
-Larghezza massima 1920px
-<br>
-
 https://ixd-supsi.github.io/n70api/data.json
