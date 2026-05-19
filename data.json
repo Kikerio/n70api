@@ -3,8 +3,8 @@
 		"titolo": "Project Moonbound",
 		"descrizione": "The project isn't just a game. Once all the challenges are completed, the experience culminates with a visual journey to the Moon and becomes a veritable historical archive. Players are rewarded with an interface that allows them to explore original videos and NASA archive footage for each of the facilities they encounter (from David Scott's original experiment on the Moon to actual footage of the Centrifuge and the N.B.L. pool).",
 		"immagine": [
-			"..._1.jpg",
-			"..._2.jpg"
+			"projectmoonbound_1.jpg",
+			"projectmoonbound_2.jpg"
 		],
 		"url": "https://riccardovosti.github.io/TESTGRAVITY/",
 		"data": {
@@ -18,7 +18,7 @@
 			"historical-archives",
 			"apollo-program",
 			"apollo",
-			"2D"
+			"2d"
 		]
 	},
 	{
@@ -238,8 +238,8 @@
 		]
 	},
 	{
-		"titolo": "Titolo progetto",
-		"descrizione": "Descrizione progetto",
+		"titolo": "NEO Protocol",
+		"descrizione": "Neo-Sentinel is an interactive web ecosystem designed to monitor Near-Earth Objects (NEOs) in real time. Developed to celebrate NASA's 70th anniversary, the project transforms complex astrometric data streams from the Jet Propulsion Laboratory (JPL) into a space surveillance interface.",
 		"immagine": [
 			"neoprotocol_1.jpg",
 			"neoprotocol_2.jpg"
@@ -259,7 +259,6 @@
 			"science",
 			"neo",
 			"near earth object",
-			"3d",
 			"asteroids",
 			"real life data",
 			"radar"
