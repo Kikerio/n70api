@@ -142,8 +142,8 @@
 		]
 	},
 	{
-		"titolo": "Lunar Archive Explorer",
-		"descrizione": "The Lunar Archive Explorer is a digital platform that allows you to navigate and consult the scientific data and high-resolution images collected during missions to the Moon.",
+		"titolo": "Apollo Landing Archive",
+		"descrizione": "Apollo Landing Archive is an interactive website showcasing lunar panoramas built from photographs taken during the Apollo missions. It reimagines Google Earth on the Moon’s surface, allowing users to explore landing sites through immersive, stitched views of the lunar landscape.",
 		"immagine": [
 			"lunararchive_1.jpg",
 			"lunararchive_2.jpg"
